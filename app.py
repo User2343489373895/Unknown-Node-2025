@@ -66,45 +66,27 @@ def play_audio_hidden(b64_string):
         audio_html = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64_string}" type="audio/mp3"></audio>'
         components.html(audio_html, height=0, width=0)
 
-# FUNZIONE PIOGGIA: Corretta per essere visibile come sfondo
-def matrix_rain_js():
-    js_code = """
-    <html>
-    <body style="margin: 0; padding: 0; background-color: transparent; overflow: hidden;">
-    <canvas id="matrix"></canvas>
-    <script>
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    const chars = "010101XMAS";
-    const fontSize = 18;
-    const columns = canvas.width / fontSize;
-    const drops = [];
-    for (let i = 0; i < columns; i++) drops[i] = 1;
-
-    function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars.charAt(Math.floor(Math.random() * chars.length));
-            ctx.fillStyle = (Math.random() > 0.5) ? '#00FF41' : '#FF0000';
-            ctx.font = fontSize + 'px monospace';
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
+/* Animazione Matrix Natalizia */
+    .matrix-rain {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 1;
     }
-    setInterval(draw, 35);
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-    </script>
-    </body>
-    </html>
-    """
+    .bit {
+        position: absolute; top: -30px;
+        font-family: monospace; font-size: 18px;
+        animation: fall linear infinite;
+    }
+    @keyframes fall { to { transform: translateY(110vh); } }
+    </style>
+    """, unsafe_allow_html=True)
+
+def find_file(name):
+    for root, dirs, files in os.walk("."):
+        for f in files:
+            if f.lower() == name.lower():
+                return os.path.join(root, f)
+    return None
     # Usiamo un'altezza minima per l'iframe, ma il CSS lo espanderà a tutto schermo
     components.html(js_code, height=1)
 
@@ -161,3 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
