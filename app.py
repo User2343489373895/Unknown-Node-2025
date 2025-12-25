@@ -7,32 +7,38 @@ import streamlit.components.v1 as components
 # 1. Configurazione Pagina
 st.set_page_config(page_title="BREACHMAS_2025", page_icon="💀", layout="wide")
 
-# 2. CSS AGGRESSIVO: Nasconde branding e prepara il terreno per la pioggia
+# 2. CSS AGGRESSIVO: Nasconde branding e forza la pioggia a tutto schermo
 st.markdown("""
     <style>
     /* Sfondo Nero Totale */
     .stApp { background-color: #000000; overflow: hidden; }
     
-    /* NASCONDE OGNI TRACCIA DI STREAMLIT CLOUD (Created by, Hosted by, ecc.) */
+    /* NASCONDE OGNI TRACCIA DI STREAMLIT CLOUD (Created by, Hosted by, badge, ecc.) */
     header, footer, .stAppDeployButton, #MainMenu, .stViewerBadge, 
     #streamlit_share_connect_button, [data-testid="stStatusWidget"],
-    [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {
+    [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
+    .st-emotion-cache-zq59db, .st-emotion-cache-10trblm {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* Forza l'iframe della pioggia a stare sullo sfondo */
+    /* FORZA L'IFRAME DELLA PIOGGIA A TUTTO SCHERMO */
     iframe[title="streamlit.components.v1.html"] {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
-        border: none;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 0 !important; /* Sopra lo sfondo nero, sotto il contenuto */
+        border: none !important;
     }
 
-    .block-container { padding-top: 1rem !important; max-width: 100% !important; }
+    .block-container { 
+        padding-top: 1rem !important; 
+        max-width: 100% !important; 
+        position: relative; 
+        z-index: 10; /* Tiene il testo sopra la pioggia */
+    }
 
     /* LOG: Grandi e nitidi */
     .log-text {
@@ -66,29 +72,53 @@ def play_audio_hidden(b64_string):
         audio_html = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64_string}" type="audio/mp3"></audio>'
         components.html(audio_html, height=0, width=0)
 
-/* Animazione Matrix Natalizia */
-    .matrix-rain {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none; z-index: 1;
-    }
-    .bit {
-        position: absolute; top: -30px;
-        font-family: monospace; font-size: 18px;
-        animation: fall linear infinite;
-    }
-    @keyframes fall { to { transform: translateY(110vh); } }
-    </style>
-    """, unsafe_allow_html=True)
+# FUNZIONE PIOGGIA: Sincronizzata con lo schermo reale
+def matrix_rain_js():
+    js_code = """
+    <html>
+    <body style="margin: 0; padding: 0; background-color: transparent; overflow: hidden;">
+    <canvas id="matrix"></canvas>
+    <script>
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
 
-def find_file(name):
-    for root, dirs, files in os.walk("."):
-        for f in files:
-            if f.lower() == name.lower():
-                return os.path.join(root, f)
-    return None
-    # Usiamo un'altezza minima per l'iframe, ma il CSS lo espanderà a tutto schermo
-    components.html(js_code, height=1)
+    // Funzione per settare le dimensioni reali
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    
+    const chars = "010101XMAS";
+    const fontSize = 18;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = [];
+    for (let i = 0; i < columns; i++) drops[i] = 1;
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Effetto scia
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars.charAt(Math.floor(Math.random() * chars.length));
+            ctx.fillStyle = (Math.random() > 0.5) ? '#00FF41' : '#FF0000';
+            ctx.font = fontSize + 'px monospace';
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+    setInterval(draw, 35);
+    </script>
+    </body>
+    </html>
+    """
+    # L'iframe deve avere una dimensione minima dichiarata qui per essere attivato
+    components.html(js_code, height=100, width=100)
 
 def main():
     if 'authorized' not in st.session_state: st.session_state.authorized = False
@@ -119,7 +149,6 @@ def main():
         for i, (text, delay) in enumerate(steps):
             full_log += text + "<br>"
             log_placeholder.markdown(f'<div class="log-text">{full_log}</div>', unsafe_allow_html=True)
-            # Pre-carica la musica rock
             if i == 4: rock_b64 = get_audio_b64(find_file("musica.mp3"))
             time.sleep(delay)
 
@@ -143,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
