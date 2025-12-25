@@ -63,7 +63,7 @@ def play_audio_b64(b64_string):
 
 def start_cyber_rain():
     import random
-    cols = 80
+    cols = 120
     html_bits = '<div class="matrix-rain">'
     for i in range(cols):
         left = i * 2.5
@@ -134,3 +134,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
