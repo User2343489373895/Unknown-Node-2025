@@ -123,7 +123,7 @@ def main():
         if ascii_path:
             st.image(ascii_path, use_container_width=True)
         
-        st.success("SUCCESS: Buon Natale, Locandieri!")
+        st.success("SUCCESS: Buon Natale, Locandieri! 🍻")
 
         # Visualizza la foto finale (foto.png)
         img_path = find_file("foto.png")
@@ -134,5 +134,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
