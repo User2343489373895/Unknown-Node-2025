@@ -22,7 +22,7 @@ st.markdown("""
         z-index: 100;
     }
     
-    /* La pioggia di bit (0 1 X M A S 2 0 2 5) */
+    /* La pioggia di bit (X M A S 2 0 2 5) */
     .matrix-rain {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none; z-index: 1;
@@ -63,14 +63,14 @@ def play_audio_b64(b64_string):
 
 def start_cyber_rain():
     import random
-    cols = 120
+    cols = 170
     html_bits = '<div class="matrix-rain">'
     for i in range(cols):
         left = i * 2.5
         duration = random.uniform(2, 6)
         delay = random.uniform(0, 4)
         color = "#00FF41" if i % 2 == 0 else "#FF0000"
-        char = random.choice(["0", "1", "X", "M", "A", "S", "2", "0", "2", "5"])
+        char = random.choice(["X", "M", "A", "S", "2", "0", "2", "5"])
         html_bits += f'<div class="bit" style="left:{left}%; color:{color}; animation-duration:{duration}s; animation-delay:{delay}s;">{char}</div>'
     html_bits += '</div>'
     st.markdown(html_bits, unsafe_allow_html=True)
@@ -134,4 +134,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
