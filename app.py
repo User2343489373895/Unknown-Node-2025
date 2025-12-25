@@ -7,13 +7,14 @@ import streamlit.components.v1 as components
 # 1. Configurazione Pagina
 st.set_page_config(page_title="BREACHMAS_2025", page_icon="💀", layout="wide")
 
-# 2. CSS: Sfondo nero, log verdi grandi e pioggia sullo sfondo
+# 2. CSS: Forza lo sfondo e la pioggia dietro tutto
 st.markdown("""
     <style>
-    .stApp { background-color: #000000; overflow-x: hidden; }
+    /* Sfondo Nero Totale */
+    .stApp { background-color: #000000; overflow: hidden; }
     
-    /* Forza l'iframe della pioggia a stare dietro tutto */
-    iframe {
+    /* FORZA L'IFRAME DELLA PIOGGIA (identificato dall'altezza 500) A TUTTO SCHERMO */
+    iframe[height="500"] {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -23,7 +24,7 @@ st.markdown("""
         border: none !important;
     }
 
-    /* Rende il contenuto di Streamlit trasparente per vedere la pioggia */
+    /* Rende il contenuto di Streamlit trasparente */
     .main .block-container {
         background-color: transparent !important;
         max-width: 100% !important;
@@ -35,12 +36,12 @@ st.markdown("""
         color: #00FF41 !important;
         font-family: 'Courier New', Courier, monospace !important;
         font-size: 22px !important; 
-        line-height: 1.6 !important;
+        line-height: 1.5 !important;
         text-shadow: 0 0 5px #00FF41;
         margin-bottom: 10px !important;
     }
     
-    /* Nasconde player audio */
+    /* Nasconde player audio e branding */
     div[data-testid="stAudio"] { position: fixed; bottom: -100px; opacity: 0; }
     header, footer, #MainMenu { visibility: hidden; }
     </style>
@@ -52,95 +53,105 @@ def find_file(name):
             if f.lower() == name.lower(): return os.path.join(root, f)
     return None
 
-def play_audio(file_path):
+def get_audio_b64(file_path):
     if file_path and os.path.exists(file_path):
         with open(file_path, "rb") as f:
-            data = f.read()
-            b64 = base64.b64encode(data).decode()
-            audio_html = f"""
-                <audio autoplay="true" style="display:none;">
-                    <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                </audio>
-            """
-            components.html(audio_html, height=0)
+            return base64.b64encode(f.read()).decode()
+    return None
 
-# FUNZIONE PIOGGIA: 0, 1, X, M, A, S (Verde e Rosso)
-def start_matrix_rain():
+def play_audio_hidden(b64_string):
+    if b64_string:
+        audio_html = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64_string}" type="audio/mp3"></audio>'
+        components.html(audio_html, height=0)
+
+# FUNZIONE PIOGGIA ORIGINALE (0, 1, X, M, A, S)
+def matrix_rain_js():
     js_code = """
-    <body style="margin: 0; background: black; overflow: hidden;">
-    <canvas id="q"></canvas>
+    <html>
+    <body style="margin: 0; padding: 0; background: black; overflow: hidden;">
+    <canvas id="matrix"></canvas>
     <script>
-    var q = document.getElementById('q'),
-        s = window.screen,
-        w = q.width = s.width,
-        h = q.height = s.height,
-        p = Array(256).join(1).split(''),
-        c = "010101XMAS",
-        ctx = q.getContext('2d');
-
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    const chars = "010101XMAS";
+    const fontSize = 18;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = [];
+    for (let i = 0; i < columns; i++) drops[i] = 1;
     function draw() {
-        ctx.fillStyle = 'rgba(0,0,0,0.1)';
-        ctx.fillRect(0, 0, w, h);
-        p.map(function(v, i) {
-            ctx.fillStyle = Math.random() > 0.5 ? '#00FF41' : '#FF0000';
-            ctx.font = '18px monospace';
-            ctx.fillText(c.charAt(Math.floor(Math.random() * c.length)), i * 15, v);
-            p[i] = v > h + Math.random() * 1000 ? 0 : v + 15;
-        });
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars.charAt(Math.floor(Math.random() * chars.length));
+            ctx.fillStyle = (Math.random() > 0.5) ? '#00FF41' : '#FF0000';
+            ctx.font = fontSize + 'px monospace';
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
     }
     setInterval(draw, 35);
     </script>
     </body>
+    </html>
     """
-    components.html(js_code)
+    # Usiamo height=500 così il CSS lo riconosce per metterlo a tutto schermo
+    components.html(js_code, height=500)
 
-# --- LOGICA APPLICAZIONE ---
+def main():
+    if 'authorized' not in st.session_state: st.session_state.authorized = False
 
-if 'authorized' not in st.session_state:
-    st.session_state.authorized = False
+    if not st.session_state.authorized:
+        st.markdown('<div class="log-text">SYSTEM: CACTUS_SERVER<br>DATE: 25-12-2025<br>STATUS: ENCRYPTED</div>', unsafe_allow_html=True)
+        if st.button("RUN EXPLOIT"):
+            st.session_state.authorized = True
+            st.rerun()
+    else:
+        # 1. Modem Audio (26s)
+        modem_b64 = get_audio_b64(find_file("modem.mp3"))
+        play_audio_hidden(modem_b64)
 
-if not st.session_state.authorized:
-    st.markdown('<div class="log-text">SYSTEM: CACTUS_SERVER<br>DATE: 25-12-2025<br>STATUS: ENCRYPTED</div>', unsafe_allow_html=True)
-    if st.button("RUN EXPLOIT"):
-        st.session_state.authorized = True
-        st.rerun()
-else:
-    # 1. MODEM (Parte subito, dura 26s)
-    play_audio(find_file("modem.mp3"))
+        log_placeholder = st.empty()
+        full_log = ""
+        
+        steps = [
+            ("> Dialing 01010011...", 2.5),
+            ("> Carrier detected...", 1.5),
+            ("> Handshake: V.90 Protocol...", 6.0),
+            ("> Bypassing IDS/IPS...", 4.5),
+            ("> Escalating to root...", 3.5),
+            ("> Accessing secret_payload...", 3.0),
+            ("> Decrypting visual data...", 5.0),
+        ]
 
-    log_area = st.empty()
-    full_log = ""
-    
-    # Lista step sincronizzata (Totale circa 26 secondi)
-    steps = [
-        ("> Dialing 01010011...", 2.5),
-        ("> Carrier detected...", 1.5),
-        ("> Handshake: V.90 Protocol...", 6.0),
-        ("> Bypassing IDS/IPS...", 4.5),
-        ("> Escalating to root...", 3.5),
-        ("> Accessing secret_payload...", 3.0),
-        ("> Decrypting visual data...", 5.0),
-    ]
+        for i, (text, delay) in enumerate(steps):
+            full_log += text + "<br>"
+            log_placeholder.markdown(f'<div class="log-text">{full_log}</div>', unsafe_allow_html=True)
+            if i == 4: rock_b64 = get_audio_b64(find_file("musica.mp3"))
+            time.sleep(delay)
 
-    for text, delay in steps:
-        full_log += text + "<br>"
-        log_area.markdown(f'<div class="log-text">{full_log}</div>', unsafe_allow_html=True)
-        time.sleep(delay)
+        # --- AZIONE FINALE ---
+        play_audio_hidden(rock_b64)
+        matrix_rain_js() # Parte la pioggia a tutto schermo
 
-    # --- AZIONE FINALE ---
-    start_matrix_rain() # Parte la pioggia sullo sfondo
-    play_audio(find_file("musica.mp3")) # Parte la musica Rock
-    
-    # Visualizza ascii.png
-    ascii_path = find_file("ascii.png")
-    if ascii_path:
-        st.image(ascii_path, use_container_width=True)
-    
-    st.success("SUCCESS: Buon Natale, Locandieri!")
+        # Immagini
+        ascii_img_path = find_file("ascii.png")
+        if ascii_img_path:
+            st.image(ascii_img_path, use_container_width=True)
+        
+        st.success("SUCCESS: Buon Natale, Locandieri!")
 
-    # Visualizza foto.png
-    foto_path = find_file("foto.png")
-    if foto_path:
-        st.image(foto_path, use_container_width=True)
-    
-    st.markdown('<div class="log-text">root@cactus_server:~# _</div>', unsafe_allow_html=True)
+        foto_path = find_file("foto.png")
+        if foto_path:
+            st.image(foto_path, use_container_width=True)
+        
+        st.markdown('<div class="log-text">root@cactus_server:~# _</div>', unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
