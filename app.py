@@ -7,13 +7,16 @@ import streamlit.components.v1 as components
 # 1. Configurazione Pagina
 st.set_page_config(page_title="BREACHMAS_2025", page_icon="💀", layout="wide")
 
-# 2. CSS AGGRESSIVO: Nasconde branding e forza la pioggia a tutto schermo
+# 2. CSS DEFINITIVO: Nasconde branding e FORZA la pioggia sullo sfondo totale
 st.markdown("""
     <style>
     /* Sfondo Nero Totale */
-    .stApp { background-color: #000000; overflow: hidden; }
+    .stApp { 
+        background-color: #000000; 
+        overflow-x: hidden;
+    }
     
-    /* NASCONDE OGNI TRACCIA DI STREAMLIT CLOUD (Created by, Hosted by, badge, ecc.) */
+    /* NASCONDE OGNI TRACCIA DI STREAMLIT CLOUD */
     header, footer, .stAppDeployButton, #MainMenu, .stViewerBadge, 
     #streamlit_share_connect_button, [data-testid="stStatusWidget"],
     [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
@@ -22,22 +25,24 @@ st.markdown("""
         visibility: hidden !important;
     }
 
-    /* FORZA L'IFRAME DELLA PIOGGIA A TUTTO SCHERMO */
-    iframe[title="streamlit.components.v1.html"] {
+    /* FORZA L'IFRAME DELLA PIOGGIA A TUTTO SCHERMO DIETRO TUTTO */
+    iframe[title="matrix_rain_background"] {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        z-index: 0 !important; /* Sopra lo sfondo nero, sotto il contenuto */
+        z-index: -1 !important;
         border: none !important;
     }
 
-    .block-container { 
-        padding-top: 1rem !important; 
-        max-width: 100% !important; 
-        position: relative; 
-        z-index: 10; /* Tiene il testo sopra la pioggia */
+    /* Rende il contenitore di Streamlit trasparente per vedere la pioggia sotto */
+    .main .block-container {
+        background-color: transparent !important;
+        max-width: 100% !important;
+        padding-top: 1rem !important;
+        position: relative;
+        z-index: 10;
     }
 
     /* LOG: Grandi e nitidi */
@@ -67,22 +72,21 @@ def get_audio_b64(file_path):
             return base64.b64encode(f.read()).decode()
     return None
 
-def play_audio_hidden(b64_string):
+def play_audio_hidden(b64_string, title):
     if b64_string:
         audio_html = f'<audio autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{b64_string}" type="audio/mp3"></audio>'
-        components.html(audio_html, height=0, width=0)
+        components.html(audio_html, height=0, width=0, title=title)
 
-# FUNZIONE PIOGGIA: Sincronizzata con lo schermo reale
+# FUNZIONE PIOGGIA: Sincronizzata con lo schermo
 def matrix_rain_js():
     js_code = """
     <html>
-    <body style="margin: 0; padding: 0; background-color: transparent; overflow: hidden;">
+    <body style="margin: 0; padding: 0; background-color: black; overflow: hidden;">
     <canvas id="matrix"></canvas>
     <script>
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
 
-    // Funzione per settare le dimensioni reali
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -97,7 +101,7 @@ def matrix_rain_js():
     for (let i = 0; i < columns; i++) drops[i] = 1;
 
     function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Effetto scia
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         for (let i = 0; i < drops.length; i++) {
@@ -117,8 +121,8 @@ def matrix_rain_js():
     </body>
     </html>
     """
-    # L'iframe deve avere una dimensione minima dichiarata qui per essere attivato
-    components.html(js_code, height=100, width=100)
+    # Usiamo un titolo specifico per l'iframe così il CSS lo riconosce
+    components.html(js_code, title="matrix_rain_background")
 
 def main():
     if 'authorized' not in st.session_state: st.session_state.authorized = False
@@ -131,7 +135,7 @@ def main():
     else:
         # 1. MODEM (26s)
         modem_b64 = get_audio_b64(find_file("modem.mp3"))
-        play_audio_hidden(modem_b64)
+        play_audio_hidden(modem_b64, "modem_audio")
 
         log_placeholder = st.empty()
         full_log = ""
@@ -153,8 +157,8 @@ def main():
             time.sleep(delay)
 
         # --- AZIONE FINALE ---
-        play_audio_hidden(rock_b64)
-        matrix_rain_js() # Parte la pioggia 010101XMAS
+        play_audio_hidden(rock_b64, "rock_audio")
+        matrix_rain_js() # Parte la pioggia a tutto schermo
 
         # Visualizza ascii.png
         ascii_img_path = find_file("ascii.png")
