@@ -7,7 +7,7 @@ import streamlit.components.v1 as components
 # 1. Configurazione Pagina
 st.set_page_config(page_title="BREACHMAS_2025", page_icon="💀", layout="centered")
 
-# --- CSS LOOK TERMINALE + EFFETTO GLITCH SULLA PIOGGIA ---
+# --- CSS LOOK TERMINALE E PIOGGIA FUNZIONANTE ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000; overflow-x: hidden; }
@@ -22,34 +22,17 @@ st.markdown("""
         z-index: 100;
     }
     
-    /* Contenitore Pioggia */
+    /* La pioggia di bit (0 1 X M A S 2 0 2 5) */
     .matrix-rain {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none; z-index: 1;
     }
-
-    /* I BIT: Caduta + Glitch */
     .bit {
         position: absolute; top: -30px;
         font-family: monospace; font-size: 18px;
-        /* Applichiamo due animazioni: caduta e glitch */
-        animation: fall linear infinite, glitch 0.3s steps(2, start) infinite;
+        animation: fall linear infinite;
     }
-
-    /* Animazione Caduta */
-    @keyframes fall { 
-        to { transform: translateY(110vh); } 
-    }
-
-    /* ANIMAZIONE GLITCH (Spostamento e sfarfallio) */
-    @keyframes glitch {
-        0% { transform: translateX(0); opacity: 1; }
-        20% { transform: translateX(-3px); opacity: 0.8; }
-        40% { transform: translateX(3px); opacity: 1; }
-        60% { transform: translateX(-1px); opacity: 0.7; }
-        80% { transform: translateX(2px); opacity: 1; }
-        100% { transform: translateX(0); opacity: 1; }
-    }
+    @keyframes fall { to { transform: translateY(110vh); } }
     
     /* Nasconde player audio */
     div[data-testid="stAudio"] { position: fixed; bottom: -100px; }
@@ -80,18 +63,15 @@ def play_audio_b64(b64_string):
 
 def start_cyber_rain():
     import random
-    cols = 40
+    cols = 80
     html_bits = '<div class="matrix-rain">'
     for i in range(cols):
-        left = i * 2.5
-        duration = random.uniform(2, 5)
+        left = i * (80 / cols)
+        duration = random.uniform(2, 6)
         delay = random.uniform(0, 4)
         color = "#00FF41" if i % 2 == 0 else "#FF0000"
-        
-        # Mischia bit, lettere XMAS e l'anno 2025
         char = random.choice(["0", "1", "X", "M", "A", "S", "2", "0", "2", "5"])
-        
-        html_bits += f'<div class="bit" style="left:{left}%; color:{color}; animation-duration:{duration}s, 0.3s; animation-delay:{delay}s, {random.uniform(0, 5)}s;">{char}</div>'
+        html_bits += f'<div class="bit" style="left:{left}%; color:{color}; animation-duration:{duration}s; animation-delay:{delay}s;">{char}</div>'
     html_bits += '</div>'
     st.markdown(html_bits, unsafe_allow_html=True)
 
@@ -112,6 +92,7 @@ def main():
         log_placeholder = st.empty()
         full_log = ""
         
+        # Sequenza log sincronizzata (26 secondi circa)
         steps = [
             ("> Dialing 01010011...", 2.5),
             ("> Carrier detected...", 1.5),
@@ -127,6 +108,7 @@ def main():
             log_placeholder.markdown(f'<div class="log-text">{full_log}</div>', unsafe_allow_html=True)
             time.sleep(delay)
 
+        # Caricamento musica rock durante l'ultimo log
         full_log += "> Executing payload...<br>"
         log_placeholder.markdown(f'<div class="log-text">{full_log}</div>', unsafe_allow_html=True)
         rock_b64 = get_audio_b64(find_file("musica.mp3"))
@@ -136,19 +118,19 @@ def main():
         play_audio_b64(rock_b64)
         start_cyber_rain()
 
-        # Visualizza ascii.png
+        # Visualizza ascii.png invece del testo
         ascii_path = find_file("ascii.png")
         if ascii_path:
             st.image(ascii_path, use_container_width=True)
         
         st.success("SUCCESS: Buon Natale, Locandieri!")
 
-        # Visualizza foto.png
+        # Visualizza la foto finale (foto.png)
         img_path = find_file("foto.png")
         if img_path:
             st.image(img_path, use_container_width=True)
         
-        st.markdown('<p class="log-text">root@cactus_server:~# _</p>', unsafe_allow_html=True)
+        st.markdown('<div class="log-text">root@cactus_server:~# _</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
