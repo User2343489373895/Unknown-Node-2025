@@ -66,7 +66,7 @@ def start_cyber_rain():
     cols = 80
     html_bits = '<div class="matrix-rain">'
     for i in range(cols):
-        left = i * (80 / cols)
+        left = i * 2.5
         duration = random.uniform(2, 6)
         delay = random.uniform(0, 4)
         color = "#00FF41" if i % 2 == 0 else "#FF0000"
